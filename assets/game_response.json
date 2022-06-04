@@ -1,0 +1,40 @@
+{
+  "gameId": "1",
+  "leagueName": "England. Premier League 2022/2023",
+  "startTime": "23:00",
+  "startDate": "04.05",
+  "homeTeam": {
+    "teamName": "Manchester United",
+    "teamLogo": "assets/img_team_logo.json",
+    "teamFlag": "assets/img_flag.json",
+    "teamLineup": [
+      "Danilo",
+      "Arthur",
+      "Matthijs de Ligt",
+      "Mattia De Sciglio",
+      "Juan Cuadrado",
+      "Alex Sandro",
+      "Luca Pellegrini",
+      "Weston McKennie"
+    ]
+  },
+  "awayTeam": {
+    "teamName": "Liverpool",
+    "teamLogo": "assets/img_team_logo.json",
+    "teamFlag": "assets/img_flag.json",
+    "teamLineup": [
+      "Danilo",
+      "Arthur",
+      "Matthijs de Ligt",
+      "Mattia De Sciglio",
+      "Juan Cuadrado",
+      "Alex Sandro",
+      "Luca Pellegrini",
+      "Weston McKennie"
+    ]
+  }
+}
+
+
+
+

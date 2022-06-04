@@ -9,6 +9,17 @@ enum SportType {
 extension SportTypeExtension on SportType {
   String get name => describeEnum(this);
 
+  String get sportTypeName {
+    switch (this) {
+      case SportType.FOOTBALL:
+        return 'Football';
+      case SportType.BASKETBALL:
+        return 'Basketball';
+      case SportType.HOCKEY:
+        return 'Hockey';
+    }
+  }
+
   String get sportTypeIcon {
     switch (this) {
       case SportType.FOOTBALL:
