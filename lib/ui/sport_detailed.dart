@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:win_score/domain/GameModel.dart';
 import 'package:win_score/domain/SportType.dart';
 import 'package:win_score/resources/values/app_colors.dart';
@@ -30,14 +31,32 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
 
   _SportDetailedScreenState({required this.gameId, required this.sportType});
 
-  void setSelectedValue(String newValue) {
+  Future<void> setSelectedValue(String newValue) async {
+    final prefs = await SharedPreferences.getInstance();
+
     setState(() {
       if (_selectedValue == newValue) {
         _selectedValue = "";
+        prefs.remove(gameId);
       } else {
+        prefs.setString(gameId, newValue);
         _selectedValue = newValue;
       }
-      print("value $newValue selected $_selectedValue");
+      print(
+          "change value in store gameId $gameId ${_selectedValue} ${prefs.getString(gameId)}");
+
+      // print("value $newValue selected $_selectedValue");
+    });
+  }
+
+  Future<void> _loadValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      print("saved value ${prefs.getString(gameId)}");
+
+      if (prefs.getString(gameId) != null) {
+        _selectedValue = prefs.getString(gameId)!;
+      }
     });
   }
 
@@ -50,6 +69,7 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     // _gameId = (args["model"] as GameModel).gameId;
     setState(() {
       gameModel = fetchData();
+      _loadValue();
     });
   }
 
