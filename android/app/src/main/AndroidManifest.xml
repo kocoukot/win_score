@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.winScore.win_score">
    <application
-        android:label="win_score"
-        android:name="${applicationName}"
+        android:label="Win Scores"
+       android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

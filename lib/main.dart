@@ -1,9 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:win_score/resources/values/app_colors.dart';
 import 'package:win_score/resources/values/app_strings.dart';
+import 'package:win_score/service/notification/notification_service.dart';
 import 'package:win_score/ui/sport_list.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init(); // <----
   runApp(const MyApp());
 }
 
