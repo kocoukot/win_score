@@ -75,45 +75,9 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     try {
       var response = await http.get(urlHome);
       if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.body)["result"];
-        var list =
-            jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
-        return list;
-      } else {
-        throw const Padding(
-          padding: EdgeInsets.only(top: 50),
-          child: Center(
-            child: Text('Convert Error'),
-          ),
-        );
-      }
-    } catch (e) {
-      throw const Padding(
-        padding: EdgeInsets.only(top: 50),
-        child: Center(
-          child: Text('Convert Error'),
-        ),
-      );
-    }
-  }
-
-  Future<List<MemberModel>> fetchAwaySquad() async {
-    final queryParametersAway = {
-      'login': SPORT_LOGIN,
-      'token': SPORT_TOKEN,
-      'task': SPORT_TASK_SQUAD,
-      'team': gameModel.awayTeam.teamId,
-    };
-
-    var urlAway =
-        Uri.https(SPORT_BASE_URL, '/api/en/get.php', queryParametersAway);
-    try {
-      var response = await http.get(urlAway);
-      if (response.statusCode == 200) {
         List jsonResponse = json.decode(response.body)["results"];
         var list =
             jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
-        print(list);
         return list;
       } else {
         throw const Padding(
