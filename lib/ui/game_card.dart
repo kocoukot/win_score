@@ -1,104 +1,157 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:win_score/domain/GameModel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/parser.dart';
+import 'package:win_score/domain/sport_type.dart';
 import 'package:win_score/resources/values/app_colors.dart';
+
+import '../domain/game_model.dart';
 
 class GameCard extends StatelessWidget {
   final GameModel gameModel;
+  final SportType sportType;
 
-  const GameCard({Key? key, required this.gameModel}) : super(key: key);
+  const GameCard({Key? key, required this.gameModel, required this.sportType})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: [
-          Center(
-              child: Container(
-            padding:
-                const EdgeInsets.only(top: 22, left: 16, right: 16, bottom: 20),
-            child: Text(
-              gameModel.leagueName,
-              style: const TextStyle(
-                  color: MAIN_WHITE_COLOR,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400),
-            ),
-          )),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TeamCard(teamModel: gameModel.homeTeam),
-              Container(
-                padding: const EdgeInsets.only(top: 16, left: 12, right: 12),
-                child: Column(
-                  children: [
-                    Text(
-                      gameModel.startTime,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700),
-                    ),
-                    Text(gameModel.startDate,
-                        style: const TextStyle(
-                            color: TEAM_TEXT_COLOR,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400)),
-                  ],
-                ),
-              ),
-              TeamCard(teamModel: gameModel.awayTeam)
-            ],
+    return Column(
+      children: [
+        Center(
+            child: Container(
+          padding:
+              const EdgeInsets.only(top: 22, left: 16, right: 16, bottom: 20),
+          child: Text(
+            gameModel.league.leagueName,
+            style: const TextStyle(
+                color: MAIN_WHITE_COLOR,
+                fontSize: 14,
+                fontWeight: FontWeight.w400),
           ),
-          const Divider()
-        ],
-      ),
+        )),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                Container(
+                  color: Colors.blue,
+                )
+              ],
+            ),
+            TeamCard(teamModel: gameModel.homeTeam, sportType: sportType),
+            Container(
+              padding: const EdgeInsets.only(top: 16, left: 12, right: 12),
+              child: Column(
+                children: [
+                  Text(
+                    gameModel.getGameTime(),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700),
+                  ),
+                  Text(gameModel.getGameDate(),
+                      style: const TextStyle(
+                          color: TEAM_TEXT_COLOR,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400)),
+                ],
+              ),
+            ),
+            TeamCard(
+              teamModel: gameModel.awayTeam,
+              sportType: sportType,
+            )
+          ],
+        ),
+        const SizedBox(
+          height: 36,
+        )
+      ],
     );
   }
 }
 
 class TeamCard extends StatelessWidget {
   final TeamModel teamModel;
+  final SportType sportType;
 
-  const TeamCard({super.key, required this.teamModel});
+  const TeamCard({super.key, required this.teamModel, required this.sportType});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: SizedBox(
-        width: 130,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: const Image(
-                image: AssetImage('assets/img_team_logo.png'),
-                height: 69,
-                width: 69,
-              ),
+    late Widget flagWidget;
+    final SvgParser parser = SvgParser();
+    if (teamModel.teamCC.isEmpty) {
+      flagWidget = Icon(Icons.error);
+    } else {
+      flagWidget = SvgPicture.network(
+        width: 96,
+        height: 52,
+        "https://spoyer.ru/api/icons/countries/${teamModel.teamCC}.svg",
+        fit: BoxFit.fill,
+        semanticsLabel: 'A shark?!',
+        placeholderBuilder: (BuildContext context) =>
+            const CircularProgressIndicator(),
+      );
+    }
+
+    return SizedBox(
+      width: 130,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8.0),
+            child: CachedNetworkImage(
+              width: 70,
+              height: 70,
+              imageUrl:
+                  "https://spoyer.ru/api/team_img/${sportType.sportApi}/${teamModel.teamId}.png",
+              placeholder: (context, url) => Container(
+                  padding: EdgeInsets.all(20),
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                teamModel.teamName,
-                textAlign: TextAlign.center,
-                softWrap: true,
-                style: const TextStyle(
-                    color: TEAM_TEXT_COLOR,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400),
-              ),
+            // "https://spoyer.ru/api/team_img/${sportType.sportApi}/${teamModel.teamId}.png"
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              teamModel.teamName,
+              textAlign: TextAlign.center,
+              softWrap: true,
+              style: const TextStyle(
+                  color: TEAM_TEXT_COLOR,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400),
             ),
-            const Image(
-              image: AssetImage('assets/img_flag.png'),
-              height: 26,
-              width: 47,
-            ),
-          ],
-        ),
+          ),
+          Align(alignment: Alignment.bottomCenter, child: flagWidget
+
+              // CachedNetworkImage(
+
+              //   imageUrl:
+              //   "https://spoyer.ru/api/icons/countries/${teamModel
+              //       .teamCC}.svg",
+              //   placeholder: (context, url) =>
+              //       Container(
+              //           padding: const EdgeInsets.symmetric(
+              //               vertical: 5, horizontal: 15),
+              //           height: 5,
+              //           width: 5,
+              //           child: const CircularProgressIndicator(
+              //               strokeWidth: 2)),
+              //   errorWidget: (context, url, error) => const Icon(Icons.error),
+              // ),
+              )
+        ],
       ),
     );
   }
@@ -115,7 +168,7 @@ class RateButton extends InheritedWidget {
 
   static RateButton of(BuildContext context) {
     final RateButton? result =
-        context.dependOnInheritedWidgetOfExactType<RateButton>();
+    context.dependOnInheritedWidgetOfExactType<RateButton>();
     assert(result != null, 'No value found in context');
     return result!;
   }

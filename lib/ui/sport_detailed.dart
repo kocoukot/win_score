@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:win_score/domain/GameModel.dart';
-import 'package:win_score/domain/SportType.dart';
+import 'package:win_score/domain/sport_type.dart';
 import 'package:win_score/resources/values/app_colors.dart';
 import 'package:win_score/ui/game_card.dart';
+
+import '../domain/game_model.dart';
 
 class SportDetailedScreen extends StatefulWidget {
   String gameId;
@@ -110,51 +111,54 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                 children: [
                   Container(
                     color: MAIN_LIGHT_BLACK_COLOR,
-                    child: GameCard(gameModel: _gameModel),
+                    child: GameCard(
+                      gameModel: _gameModel,
+                      sportType: sportType,
+                    ),
                   ),
                   Container(
                     margin: EdgeInsets.symmetric(vertical: 30, horizontal: 16),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            child: SizedBox(
-                              height: 164,
-                              width: 146,
-                              child: ListView.builder(
-                                  scrollDirection: Axis.vertical,
-                                  itemCount:
-                                      _gameModel.homeTeam.teamLineup.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return PlayerName(
-                                      playerName:
-                                          _gameModel.homeTeam.teamLineup[index],
-                                      align: TextAlign.start,
-                                    );
-                                  }),
-                            ),
-                          ),
+                          // Container(
+                          //   child: SizedBox(
+                          //     height: 164,
+                          //     width: 146,
+                          //     child: ListView.builder(
+                          //         scrollDirection: Axis.vertical,
+                          //         itemCount:
+                          //             _gameModel.homeTeam.teamLineup.length,
+                          //         itemBuilder:
+                          //             (BuildContext context, int index) {
+                          //           return PlayerName(
+                          //             playerName:
+                          //                 _gameModel.homeTeam.teamLineup[index],
+                          //             align: TextAlign.start,
+                          //           );
+                          //         }),
+                          //   ),
+                          // ),
                           Container(
                             height: 164,
                             width: 1,
                             color: DIVIDER_COLOR,
                           ),
-                          SizedBox(
-                            height: 164,
-                            width: 146,
-                            child: ListView.builder(
-                                scrollDirection: Axis.vertical,
-                                itemCount:
-                                    _gameModel.awayTeam.teamLineup.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return PlayerName(
-                                    playerName:
-                                        _gameModel.awayTeam.teamLineup[index],
-                                    align: TextAlign.end,
-                                  );
-                                }),
-                          ),
+                          // SizedBox(
+                          //   height: 164,
+                          //   width: 146,
+                          //   child: ListView.builder(
+                          //       scrollDirection: Axis.vertical,
+                          //       itemCount:
+                          //           _gameModel.awayTeam.teamLineup.length,
+                          //       itemBuilder: (BuildContext context, int index) {
+                          //         return PlayerName(
+                          //           playerName:
+                          //               _gameModel.awayTeam.teamLineup[index],
+                          //           align: TextAlign.end,
+                          //         );
+                          //       }),
+                          // ),
                         ]),
                   ),
                   Container(

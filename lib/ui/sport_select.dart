@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:win_score/domain/SelectionType.dart';
-import 'package:win_score/domain/SportType.dart';
+import 'package:win_score/domain/selection_type.dart';
+import 'package:win_score/domain/sport_type.dart';
 import 'package:win_score/resources/values/app_colors.dart';
 import 'package:win_score/resources/values/app_strings.dart';
 import 'package:win_score/ui/sport_list.dart';

@@ -30,4 +30,15 @@ extension SportTypeExtension on SportType {
         return 'assets/ic_hockey.png';
     }
   }
+
+  String get sportApi {
+    switch (this) {
+      case SportType.FOOTBALL:
+        return 'soccer';
+      case SportType.BASKETBALL:
+        return 'basketball';
+      case SportType.HOCKEY:
+        return 'icehockey';
+    }
+  }
 }
