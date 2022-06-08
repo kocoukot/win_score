@@ -30,14 +30,14 @@ class GameModel {
 }
 
 class TeamModel {
-  String teamName;
   String teamId;
+  String teamName;
   String teamImageId;
   String teamCC;
 
   TeamModel({
-    required this.teamName,
     required this.teamId,
+    required this.teamName,
     required this.teamImageId,
     required this.teamCC,
   });
@@ -65,5 +65,22 @@ class LeagueModel {
   factory LeagueModel.fromJson(Map<String, dynamic> json) {
     return LeagueModel(
         leagueName: json['name'], leagueId: json['id'], leagueCC: json['cc']);
+  }
+}
+
+class MemberModel {
+  String memberName;
+  String memberId;
+
+  MemberModel({
+    required this.memberName,
+    required this.memberId,
+  });
+
+  factory MemberModel.fromJson(Map<String, dynamic> json) {
+    return MemberModel(
+      memberName: json['name'],
+      memberId: json['id'],
+    );
   }
 }

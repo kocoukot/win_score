@@ -4,7 +4,8 @@ const String COMFIRM_SPORT = "CONFIRM AND GO NEXT";
 
 const String SPORT_LOGIN = "ayna";
 const String SPORT_TOKEN = "12784-OhJLY5mb3BSOx0O";
-const String SPORT_TASK = "predata";
+const String SPORT_TASK_PREDATA = "predata";
+const String SPORT_TASK_SQUAD = "squaddata";
 
 const String SPORT_BASE_URL = "spoyer.com";
 const String SPORT_BASE_URL_API = "https://spoyer.com/api/get.php?";

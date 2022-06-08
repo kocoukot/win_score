@@ -34,16 +34,16 @@ class _SportListScreenState extends State<SportListScreen> {
       final queryParameters = {
         'login': SPORT_LOGIN,
         'token': SPORT_TOKEN,
-        'task': SPORT_TASK,
+        'task': SPORT_TASK_PREDATA,
         'sport': _sportType.sportApi,
         'day': date,
       };
-      var url = Uri.https(SPORT_BASE_URL, '/api/get.php', queryParameters);
+      var url = Uri.https(SPORT_BASE_URL, '/api/en/get.php', queryParameters);
       uriList.add(url);
       var t = i;
       newDate = newDate.add(const Duration(days: 1));
     }
-    print(uriList);
+    // print(uriList);
 
     var responses = await Future.wait([
       http.get(uriList[0]),
@@ -110,20 +110,23 @@ class _SportListScreenState extends State<SportListScreen> {
                     }
                     return Container(
                       child: InkWell(
-                        onTap: () => {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SportDetailedScreen(
-                                      gameId: data[index].gameId,
-                                      sportType: args,
-                                    )),
-                          )
-                          // Navigator.pushNamed(
-                          //     context, SportDetailedScreen.routeName, arguments: {
-                          //   "model": data[index],
-                          //   "type": _sportType
-                          // })
+                        onTap: () =>
+                        {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (context) => SportDetailedScreen(
+                          //             gameId: data[index].gameId,
+                          //             sportType: args,
+                          //           )),
+                          // )
+                          Navigator.pushNamed(
+                              context, SportDetailedScreen.routeName,
+                              arguments: {
+                                "model": data[index],
+                                "type": _sportType,
+                                "gameId": data[index].gameId
+                              })
                         },
                         child: Container(
                           color: bgColor,

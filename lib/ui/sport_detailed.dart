@@ -1,36 +1,34 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:win_score/domain/sport_type.dart';
 import 'package:win_score/resources/values/app_colors.dart';
+import 'package:win_score/resources/values/app_strings.dart';
 import 'package:win_score/ui/game_card.dart';
 
 import '../domain/game_model.dart';
 
 class SportDetailedScreen extends StatefulWidget {
-  String gameId;
-  SportType sportType = SportType.FOOTBALL;
-
-  SportDetailedScreen({Key? key, required this.sportType, required this.gameId})
-      : super(key: key);
+  const SportDetailedScreen({
+    Key? key,
+  }) : super(key: key);
 
   static const routeName = '/sportDetailed';
 
   @override
-  State<SportDetailedScreen> createState() =>
-      _SportDetailedScreenState(gameId: gameId, sportType: sportType);
+  State<SportDetailedScreen> createState() => _SportDetailedScreenState();
 }
 
 class _SportDetailedScreenState extends State<SportDetailedScreen> {
-  String gameId;
-  SportType sportType = SportType.FOOTBALL;
-  late Future<GameModel> gameModel;
+  late String gameId;
+  late SportType sportType;
+  late GameModel gameModel;
+  late Future<List<MemberModel>> homeSquad;
+  late Future<List<MemberModel>> awaySquad;
 
   String _selectedValue = "";
-
-  _SportDetailedScreenState({required this.gameId, required this.sportType});
 
   Future<void> setSelectedValue(String newValue) async {
     final prefs = await SharedPreferences.getInstance();
@@ -54,7 +52,6 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       print("saved value ${prefs.getString(gameId)}");
-
       if (prefs.getString(gameId) != null) {
         _selectedValue = prefs.getString(gameId)!;
       }
@@ -69,16 +66,35 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     // _sportType = args["type"] as SportType;
     // _gameId = (args["model"] as GameModel).gameId;
     setState(() {
-      gameModel = fetchData();
       _loadValue();
     });
   }
 
-  Future<GameModel> fetchData() async {
+  Future<List<MemberModel>> fetchHomeSquad() async {
+    final queryParametersHome = {
+      'login': SPORT_LOGIN,
+      'token': SPORT_TOKEN,
+      'task': SPORT_TASK_SQUAD,
+      'team': gameModel.homeTeam.teamId,
+    };
+
+    var urlHome =
+        Uri.https(SPORT_BASE_URL, '/api/en/get.php', queryParametersHome);
     try {
-      String response =
-          await rootBundle.loadString('assets/game_response.json');
-      return GameModel.fromJson(jsonDecode(response));
+      var response = await http.get(urlHome);
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body)["results"];
+        var list =
+            jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
+        return list;
+      } else {
+        throw const Padding(
+          padding: EdgeInsets.only(top: 50),
+          child: Center(
+            child: Text('Convert Error'),
+          ),
+        );
+      }
     } catch (e) {
       throw const Padding(
         padding: EdgeInsets.only(top: 50),
@@ -89,8 +105,60 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     }
   }
 
+  Future<List<MemberModel>> fetchAwaySquad() async {
+    final queryParametersAway = {
+      'login': SPORT_LOGIN,
+      'token': SPORT_TOKEN,
+      'task': SPORT_TASK_SQUAD,
+      'team': gameModel.awayTeam.teamId,
+    };
+
+    var urlAway =
+        Uri.https(SPORT_BASE_URL, '/api/en/get.php', queryParametersAway);
+    try {
+      var response = await http.get(urlAway);
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body)["results"];
+        var list =
+            jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
+        print(list);
+        return list;
+      } else {
+        throw const Padding(
+          padding: EdgeInsets.only(top: 50),
+          child: Center(
+            child: Text('Convert Error'),
+          ),
+        );
+      }
+    } catch (e) {
+      throw const Padding(
+        padding: EdgeInsets.only(top: 50),
+        child: Center(
+          child: Text('Convert Error'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadTeams() async {
+    setState(() {
+      homeSquad = fetchHomeSquad();
+      awaySquad = fetchAwaySquad();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    var args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
+    gameId = args["gameId"] as String;
+    sportType = args["type"] as SportType;
+    gameModel = args["model"] as GameModel;
+
+    _loadTeams();
+
     return Scaffold(
       backgroundColor: MAIN_BACKGROUND_COLOR,
       appBar: AppBar(
@@ -98,125 +166,138 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
         title: Text(
           sportType.sportTypeName,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       body: Center(
-        child: FutureBuilder<GameModel>(
-          future: gameModel,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              GameModel _gameModel = snapshot.requireData;
-              return Column(
+        child: Column(
+          children: [
+            Container(
+              color: MAIN_LIGHT_BLACK_COLOR,
+              child: GameCard(
+                gameModel: gameModel,
+                sportType: sportType,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: FutureBuilder<List<MemberModel>>(
+                        future: homeSquad,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            List<MemberModel> data = snapshot.requireData;
+                            return Container(
+                                child: SizedBox(
+                              height: 164,
+                              width: 146,
+                              child: ListView.builder(
+                                  scrollDirection: Axis.vertical,
+                                  itemCount: data.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return PlayerName(
+                                      playerName: data[index].memberName,
+                                      align: TextAlign.start,
+                                    );
+                                  }),
+                            ));
+                          } else {}
+                          return Center(
+                              child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  child: const CircularProgressIndicator()));
+                        },
+                      ),
+                    ),
+                    Container(
+                      height: 164,
+                      width: 1,
+                      color: DIVIDER_COLOR,
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: FutureBuilder<List<MemberModel>>(
+                        future: awaySquad,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            List<MemberModel> data = snapshot.requireData;
+                            return Container(
+                                child: SizedBox(
+                              height: 164,
+                              width: 146,
+                              child: ListView.builder(
+                                  scrollDirection: Axis.vertical,
+                                  itemCount: data.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return PlayerName(
+                                      playerName: data[index].memberName,
+                                      align: TextAlign.end,
+                                    );
+                                  }),
+                            ));
+                          } else {}
+                          return Center(
+                              child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  child: const CircularProgressIndicator()));
+                        },
+                      ),
+                    ),
+                  ]),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    color: MAIN_LIGHT_BLACK_COLOR,
-                    child: GameCard(
-                      gameModel: _gameModel,
-                      sportType: sportType,
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.symmetric(vertical: 30, horizontal: 16),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Container(
-                          //   child: SizedBox(
-                          //     height: 164,
-                          //     width: 146,
-                          //     child: ListView.builder(
-                          //         scrollDirection: Axis.vertical,
-                          //         itemCount:
-                          //             _gameModel.homeTeam.teamLineup.length,
-                          //         itemBuilder:
-                          //             (BuildContext context, int index) {
-                          //           return PlayerName(
-                          //             playerName:
-                          //                 _gameModel.homeTeam.teamLineup[index],
-                          //             align: TextAlign.start,
-                          //           );
-                          //         }),
-                          //   ),
-                          // ),
-                          Container(
-                            height: 164,
-                            width: 1,
-                            color: DIVIDER_COLOR,
-                          ),
-                          // SizedBox(
-                          //   height: 164,
-                          //   width: 146,
-                          //   child: ListView.builder(
-                          //       scrollDirection: Axis.vertical,
-                          //       itemCount:
-                          //           _gameModel.awayTeam.teamLineup.length,
-                          //       itemBuilder: (BuildContext context, int index) {
-                          //         return PlayerName(
-                          //           playerName:
-                          //               _gameModel.awayTeam.teamLineup[index],
-                          //           align: TextAlign.end,
-                          //         );
-                          //       }),
-                          // ),
-                        ]),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        RateButton(
-                            selectedValue: _selectedValue,
-                            child:
-                                Builder(builder: (BuildContext innerContext) {
-                              return RateButtonState(
-                                resultValue: '3.14',
-                                selectedValue:
-                                    RateButton.of(innerContext).selectedValue,
-                                onValueTapped: (value) {
-                                  setSelectedValue(value);
-                                },
-                              );
-                            })),
-                        RateButton(
-                            selectedValue: _selectedValue,
-                            child:
-                                Builder(builder: (BuildContext innerContext) {
-                              return RateButtonState(
-                                resultValue: '-',
-                                selectedValue:
-                                    RateButton.of(innerContext).selectedValue,
-                                onValueTapped: (value) {
-                                  setSelectedValue(value);
-                                },
-                              );
-                            })),
-                        RateButton(
-                            selectedValue: _selectedValue,
-                            child:
-                                Builder(builder: (BuildContext innerContext) {
-                              return RateButtonState(
-                                resultValue: '2.16',
-                                selectedValue:
-                                    RateButton.of(innerContext).selectedValue,
-                                onValueTapped: (value) {
-                                  setSelectedValue(value);
-                                },
-                              );
-                            })),
-                      ],
-                    ),
-                  )
+                  RateButton(
+                      selectedValue: _selectedValue,
+                      child: Builder(builder: (BuildContext innerContext) {
+                        return RateButtonState(
+                          resultValue: '3.14',
+                          selectedValue:
+                              RateButton.of(innerContext).selectedValue,
+                          onValueTapped: (value) {
+                            setSelectedValue(value);
+                          },
+                        );
+                      })),
+                  RateButton(
+                      selectedValue: _selectedValue,
+                      child: Builder(builder: (BuildContext innerContext) {
+                        return RateButtonState(
+                          resultValue: '-',
+                          selectedValue:
+                              RateButton.of(innerContext).selectedValue,
+                          onValueTapped: (value) {
+                            setSelectedValue(value);
+                          },
+                        );
+                      })),
+                  RateButton(
+                      selectedValue: _selectedValue,
+                      child: Builder(builder: (BuildContext innerContext) {
+                        return RateButtonState(
+                          resultValue: '2.16',
+                          selectedValue:
+                              RateButton.of(innerContext).selectedValue,
+                          onValueTapped: (value) {
+                            setSelectedValue(value);
+                          },
+                        );
+                      })),
                 ],
-              );
-            } else if (snapshot.hasError) {
-              return Text("${snapshot.error}");
-            }
-            // By default show a loading spinner.
-            return const CircularProgressIndicator();
-          },
+              ),
+            )
+          ],
         ),
       ),
     );

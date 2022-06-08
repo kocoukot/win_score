@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:win_score/resources/values/app_colors.dart';
 import 'package:win_score/resources/values/app_strings.dart';
+import 'package:win_score/ui/sport_detailed.dart';
 import 'package:win_score/ui/sport_list.dart';
 import 'package:win_score/ui/sport_select.dart';
 
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       title: CHOOSE_SPORT_TITLE,
       routes: {
         SportListScreen.routeName: (context) => const SportListScreen(),
-        // SportDetailedScreen.routeName: (context) => const SportDetailedScreen()
+        SportDetailedScreen.routeName: (context) => const SportDetailedScreen()
       },
       theme: ThemeData(
         primarySwatch: myMainThemeColor,
