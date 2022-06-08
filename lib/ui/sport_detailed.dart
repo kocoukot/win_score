@@ -41,14 +41,10 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
         prefs.setString(gameId, newValue);
         _selectedValue = newValue;
       }
-      print(
-          "change value in store gameId $gameId ${_selectedValue} ${prefs.getString(gameId)}");
-
-      // print("value $newValue selected $_selectedValue");
     });
   }
 
-  Future<void> _loadValue() async {
+  Future<void> _loadOddValue() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       print("saved value ${prefs.getString(gameId)}");
@@ -61,12 +57,8 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
   @override
   void initState() {
     super.initState();
-    // final args =
-    // ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    // _sportType = args["type"] as SportType;
-    // _gameId = (args["model"] as GameModel).gameId;
     setState(() {
-      _loadValue();
+      _loadOddValue();
     });
   }
 
@@ -83,9 +75,45 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     try {
       var response = await http.get(urlHome);
       if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body)["result"];
+        var list =
+            jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
+        return list;
+      } else {
+        throw const Padding(
+          padding: EdgeInsets.only(top: 50),
+          child: Center(
+            child: Text('Convert Error'),
+          ),
+        );
+      }
+    } catch (e) {
+      throw const Padding(
+        padding: EdgeInsets.only(top: 50),
+        child: Center(
+          child: Text('Convert Error'),
+        ),
+      );
+    }
+  }
+
+  Future<List<MemberModel>> fetchAwaySquad() async {
+    final queryParametersAway = {
+      'login': SPORT_LOGIN,
+      'token': SPORT_TOKEN,
+      'task': SPORT_TASK_SQUAD,
+      'team': gameModel.awayTeam.teamId,
+    };
+
+    var urlAway =
+        Uri.https(SPORT_BASE_URL, '/api/en/get.php', queryParametersAway);
+    try {
+      var response = await http.get(urlAway);
+      if (response.statusCode == 200) {
         List jsonResponse = json.decode(response.body)["results"];
         var list =
             jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
+        print(list);
         return list;
       } else {
         throw const Padding(
@@ -206,7 +234,9 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                                     );
                                   }),
                             ));
-                          } else {}
+                          } else {
+                            return const Text("No information about team");
+                          }
                           return Center(
                               child: Container(
                                   width: 40,
@@ -242,7 +272,9 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                                     );
                                   }),
                             ));
-                          } else {}
+                          } else {
+                            return const Text("No information about team");
+                          }
                           return Center(
                               child: Container(
                                   width: 40,
