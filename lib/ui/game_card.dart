@@ -82,20 +82,17 @@ class TeamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late Widget flagWidget;
-    if (teamModel.teamCC.isEmpty) {
-      flagWidget = Icon(Icons.error);
-    } else {
-      flagWidget = SvgPicture.network(
-        width: 96,
-        height: 52,
-        "https://spoyer.ru/api/icons/countries/${teamModel.teamCC}.svg",
-        fit: BoxFit.fill,
-        semanticsLabel: 'A shark?!',
-        placeholderBuilder: (BuildContext context) =>
-            const CircularProgressIndicator(),
-      );
-    }
+    Widget flagWidget = teamModel.teamCC.isEmpty
+        ? const Icon(Icons.error)
+        : SvgPicture.network(
+            width: 96,
+            height: 52,
+            "https://spoyer.ru/api/icons/countries/${teamModel.teamCC}.svg",
+            fit: BoxFit.fill,
+            semanticsLabel: 'A shark?!',
+            placeholderBuilder: (BuildContext context) =>
+                const CircularProgressIndicator(),
+          );
 
     return SizedBox(
       width: 130,
@@ -131,8 +128,7 @@ class TeamCard extends StatelessWidget {
                   fontWeight: FontWeight.w400),
             ),
           ),
-          Align(alignment: Alignment.bottomCenter, child: flagWidget
-          )
+          Align(alignment: Alignment.bottomCenter, child: flagWidget)
         ],
       ),
     );
@@ -150,7 +146,7 @@ class RateButton extends InheritedWidget {
 
   static RateButton of(BuildContext context) {
     final RateButton? result =
-    context.dependOnInheritedWidgetOfExactType<RateButton>();
+        context.dependOnInheritedWidgetOfExactType<RateButton>();
     assert(result != null, 'No value found in context');
     return result!;
   }

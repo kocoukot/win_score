@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:win_score/domain/odds_model.dart';
 import 'package:win_score/domain/sport_type.dart';
 import 'package:win_score/ext/some_ext.dart';
 import 'package:win_score/resources/values/app_colors.dart';
 import 'package:win_score/resources/values/app_strings.dart';
+import 'package:win_score/service/notification/notification_service.dart';
 import 'package:win_score/ui/game_card.dart';
+import 'package:win_score/utils/date_util.dart';
+import 'package:workmanager/workmanager.dart';
 
 import '../domain/game_model.dart';
 
@@ -41,9 +45,24 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
       if (_selectedValue == newValue) {
         _selectedValue = "";
         prefs.remove(gameId);
+        Workmanager().cancelByUniqueName(
+            "${gameModel.gameId} ${gameModel.league.leagueName}");
       } else {
         prefs.setString(gameId, newValue);
         _selectedValue = newValue;
+
+        Duration duration =
+            DateTime.now().difference(getScheduleDateTime(gameModel.startTime));
+
+        Workmanager().registerOneOffTask(
+            "${gameModel.gameId} ${gameModel.league.leagueName}",
+            "registerOneOffTask",
+            initialDelay: duration, //todo fix duration
+            inputData: <String, dynamic>{
+              'gameId': gameModel.gameId,
+              'leagueName': gameModel.league.leagueName,
+              'selectedOdd': _selectedValue,
+            });
       }
     });
   }
@@ -64,6 +83,8 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     setState(() {
       _loadOddValue();
     });
+    tz.initializeTimeZones();
+    NotificationService().initNotification();
   }
 
   Future<List<MemberModel>> fetchHomeSquad() async {
@@ -82,7 +103,7 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
         List jsonResponse = json.decode(response.body)["results"];
         var list =
             jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
-        print("teamList home $list");
+        // print("teamList home $list");
 
         return list;
       } else {
@@ -119,7 +140,7 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
         List jsonResponse = json.decode(response.body)["results"];
         var list =
             jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
-        print("teamList Away $list");
+        // print("teamList Away $list");
 
         return list;
       } else {
@@ -165,9 +186,8 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
             oddsResponse.keys.firstWhere((key) => key.contains("_1"));
         var odds = oddsResponse[reqKey];
 
-        // var odds = oddsResponse.;
-        print("jsonResponse oddsResponse $oddsResponse");
-        print("jsonResponse odds $odds");
+        // print("jsonResponse oddsResponse $oddsResponse");
+        // print("jsonResponse odds $odds");
 
         return OddsModel.fromJson(odds);
       } else {
@@ -255,12 +275,9 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                                     );
                                   }),
                             ));
-                          } else if (snapshot.hasData &&
-                              snapshot.requireData.isEmpty) {
-                            return CommonText(
-                              widgetText: "No information about team",
-                            );
-                          } else if (snapshot.hasError) {
+                          } else if ((snapshot.hasData &&
+                                  snapshot.requireData.isEmpty) ||
+                              snapshot.hasError) {
                             return CommonText(
                               widgetText: "No information about team",
                             );
@@ -301,14 +318,11 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                                     );
                                   }),
                             ));
-                          } else if (snapshot.hasData &&
-                              snapshot.requireData.isEmpty) {
+                          } else if ((snapshot.hasData &&
+                                  snapshot.requireData.isEmpty) ||
+                              snapshot.hasError) {
                             return CommonText(
                               widgetText: "No information about team",
-                            );
-                          } else if (snapshot.hasError) {
-                            return CommonText(
-                              widgetText: "Some error",
                             );
                           }
                           return const Center(
@@ -497,7 +511,7 @@ class CommonText extends StatelessWidget {
     return Text(
       widgetText,
       textAlign: TextAlign.center,
-      style: TextStyle(color: Colors.white),
+      style: const TextStyle(color: Colors.white),
     );
   }
 }

@@ -7,6 +7,7 @@ const String SPORT_TOKEN = "12784-OhJLY5mb3BSOx0O";
 const String SPORT_TASK_PREDATA = "predata";
 const String SPORT_TASK_SQUAD = "squaddata";
 const String SPORT_TASK_ODDS = "allodds";
+const String SPORT_TASK_EVENDATA = "eventdata";
 
 const String SPORT_BASE_URL = "spoyer.com";
 const String SPORT_BASE_URL_API = "https://spoyer.com/api/get.php?";

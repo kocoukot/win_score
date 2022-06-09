@@ -38,8 +38,8 @@ android {
     ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
@@ -60,7 +60,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.winScore.win_score"
+        applicationId "com.winScore"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion 21
@@ -71,6 +71,7 @@ android {
 
     buildTypes {
         release {
+            debuggable false
             signingConfig signingConfigs.release
         }
     }

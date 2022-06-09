@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:win_score/domain/selection_type.dart';
 import 'package:win_score/domain/sport_type.dart';
 import 'package:win_score/resources/values/app_colors.dart';
@@ -14,6 +15,36 @@ class SportSelectScreen extends StatefulWidget {
 
 class _SportSelectScreenState extends State<SportSelectScreen> {
   SportType _sportType = SportType.FOOTBALL;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  @override
+  initState() {
+    super.initState();
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    // If you have skipped STEP 3 then change app_icon to @mipmap/ic_launcher
+    var initializationSettingsAndroid =
+        const AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = const IOSInitializationSettings();
+
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+            android: initializationSettingsAndroid,
+            iOS: initializationSettingsIOS);
+
+    initializeLocalNotificationsPlugin(initializationSettings);
+  }
+
+  void initializeLocalNotificationsPlugin(
+      InitializationSettings initializationSettings) async {
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: selectNotification);
+  }
+
+  @override
+  Future selectNotification(String? payload) {
+    throw UnimplementedError();
+  }
 
   void _increment(SelectionType arrowType) {
     setState(() {

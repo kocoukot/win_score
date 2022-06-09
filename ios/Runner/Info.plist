@@ -42,5 +42,14 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<true/>
+		<key>UIBackgroundModes</key>
+        <array>
+        	<string>processing</string>
+        </array>
+        <key>BGTaskSchedulerPermittedIdentifiers</key>
+        	<array>
+        		<string>task-identifier</string>
+          </array>
+        </key>
 	</dict>
 </plist>
