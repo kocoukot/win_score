@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:win_score/domain/odds_model.dart';
 import 'package:win_score/domain/sport_type.dart';
+import 'package:win_score/ext/some_ext.dart';
 import 'package:win_score/resources/values/app_colors.dart';
 import 'package:win_score/resources/values/app_strings.dart';
 import 'package:win_score/ui/game_card.dart';
@@ -25,6 +27,8 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
   late String gameId;
   late SportType sportType;
   late GameModel gameModel;
+
+  late Future<OddsModel> oddsModel;
   late Future<List<MemberModel>> homeSquad;
   late Future<List<MemberModel>> awaySquad;
 
@@ -78,6 +82,8 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
         List jsonResponse = json.decode(response.body)["results"];
         var list =
             jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
+        print("teamList home $list");
+
         return list;
       } else {
         throw const Padding(
@@ -113,8 +119,57 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
         List jsonResponse = json.decode(response.body)["results"];
         var list =
             jsonResponse.map((member) => MemberModel.fromJson(member)).toList();
-        print(list);
+        print("teamList Away $list");
+
         return list;
+      } else {
+        throw const Padding(
+          padding: EdgeInsets.only(top: 50),
+          child: Center(
+            child: Text('Convert Error'),
+          ),
+        );
+      }
+    } catch (e) {
+      throw const Padding(
+        padding: EdgeInsets.only(top: 50),
+        child: Center(
+          child: Text('Convert Error'),
+        ),
+      );
+    }
+  }
+
+  Future<OddsModel> fetchOdds() async {
+    final queryParametersHome = {
+      'login': SPORT_LOGIN,
+      'token': SPORT_TOKEN,
+      'task': SPORT_TASK_ODDS,
+      'game_id': gameModel.gameId,
+    };
+
+    var urlHome =
+        Uri.https(SPORT_BASE_URL, '/api/en/get.php', queryParametersHome);
+    try {
+      print("jsonResponse gameID ${gameId}");
+
+      var response = await http.get(urlHome);
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body)["results"];
+        var oddsPlaces = (jsonResponse as Map<String, dynamic>).keys;
+
+        var placeName = getPlaceName(oddsPlaces);
+        var oddsResponse =
+            jsonResponse[placeName]["odds"]["start"] as Map<String, dynamic>;
+        String reqKey =
+            oddsResponse.keys.firstWhere((key) => key.contains("_1"));
+        var odds = oddsResponse[reqKey];
+
+        // var odds = oddsResponse.;
+        print("jsonResponse oddsResponse $oddsResponse");
+        print("jsonResponse odds $odds");
+
+        return OddsModel.fromJson(odds);
       } else {
         throw const Padding(
           padding: EdgeInsets.only(top: 50),
@@ -137,6 +192,7 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
     setState(() {
       homeSquad = fetchHomeSquad();
       awaySquad = fetchAwaySquad();
+      oddsModel = fetchOdds();
     });
   }
 
@@ -181,7 +237,8 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                       child: FutureBuilder<List<MemberModel>>(
                         future: homeSquad,
                         builder: (context, snapshot) {
-                          if (snapshot.hasData) {
+                          if (snapshot.hasData &&
+                              snapshot.requireData.isNotEmpty) {
                             List<MemberModel> data = snapshot.requireData;
                             return Container(
                                 child: SizedBox(
@@ -198,14 +255,21 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                                     );
                                   }),
                             ));
-                          } else {
-                            return const Text("No information about team");
+                          } else if (snapshot.hasData &&
+                              snapshot.requireData.isEmpty) {
+                            return CommonText(
+                              widgetText: "No information about team",
+                            );
+                          } else if (snapshot.hasError) {
+                            return CommonText(
+                              widgetText: "No information about team",
+                            );
                           }
-                          return Center(
-                              child: Container(
+                          return const Center(
+                              child: SizedBox(
                                   width: 40,
                                   height: 40,
-                                  child: const CircularProgressIndicator()));
+                                  child: CircularProgressIndicator()));
                         },
                       ),
                     ),
@@ -219,7 +283,8 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                       child: FutureBuilder<List<MemberModel>>(
                         future: awaySquad,
                         builder: (context, snapshot) {
-                          if (snapshot.hasData) {
+                          if (snapshot.hasData &&
+                              snapshot.requireData.isNotEmpty) {
                             List<MemberModel> data = snapshot.requireData;
                             return Container(
                                 child: SizedBox(
@@ -236,63 +301,85 @@ class _SportDetailedScreenState extends State<SportDetailedScreen> {
                                     );
                                   }),
                             ));
-                          } else {
-                            return const Text("No information about team");
+                          } else if (snapshot.hasData &&
+                              snapshot.requireData.isEmpty) {
+                            return CommonText(
+                              widgetText: "No information about team",
+                            );
+                          } else if (snapshot.hasError) {
+                            return CommonText(
+                              widgetText: "Some error",
+                            );
                           }
-                          return Center(
-                              child: Container(
+                          return const Center(
+                              child: SizedBox(
                                   width: 40,
                                   height: 40,
-                                  child: const CircularProgressIndicator()));
+                                  child: CircularProgressIndicator()));
                         },
                       ),
                     ),
                   ]),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  RateButton(
-                      selectedValue: _selectedValue,
-                      child: Builder(builder: (BuildContext innerContext) {
-                        return RateButtonState(
-                          resultValue: '3.14',
-                          selectedValue:
-                              RateButton.of(innerContext).selectedValue,
-                          onValueTapped: (value) {
-                            setSelectedValue(value);
-                          },
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                child: FutureBuilder<OddsModel>(
+                    future: oddsModel,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            RateButton(
+                                selectedValue: _selectedValue,
+                                child: Builder(
+                                    builder: (BuildContext innerContext) {
+                                  return RateButtonState(
+                                    resultValue: snapshot.requireData.homeOdd,
+                                    selectedValue: RateButton.of(innerContext)
+                                        .selectedValue,
+                                    onValueTapped: (value) {
+                                      setSelectedValue(value);
+                                    },
+                                  );
+                                })),
+                            RateButton(
+                                selectedValue: _selectedValue,
+                                child: Builder(
+                                    builder: (BuildContext innerContext) {
+                                  return RateButtonState(
+                                    resultValue: snapshot.requireData.drawOdd,
+                                    selectedValue: RateButton.of(innerContext)
+                                        .selectedValue,
+                                    onValueTapped: (value) {
+                                      setSelectedValue(value);
+                                    },
+                                  );
+                                })),
+                            RateButton(
+                                selectedValue: _selectedValue,
+                                child: Builder(
+                                    builder: (BuildContext innerContext) {
+                                  return RateButtonState(
+                                    resultValue: snapshot.requireData.awayOdd,
+                                    selectedValue: RateButton.of(innerContext)
+                                        .selectedValue,
+                                    onValueTapped: (value) {
+                                      setSelectedValue(value);
+                                    },
+                                  );
+                                })),
+                          ],
                         );
-                      })),
-                  RateButton(
-                      selectedValue: _selectedValue,
-                      child: Builder(builder: (BuildContext innerContext) {
-                        return RateButtonState(
-                          resultValue: '-',
-                          selectedValue:
-                              RateButton.of(innerContext).selectedValue,
-                          onValueTapped: (value) {
-                            setSelectedValue(value);
-                          },
+                      } else if (snapshot.hasError) {
+                        return CommonText(
+                          widgetText: "No information",
                         );
-                      })),
-                  RateButton(
-                      selectedValue: _selectedValue,
-                      child: Builder(builder: (BuildContext innerContext) {
-                        return RateButtonState(
-                          resultValue: '2.16',
-                          selectedValue:
-                              RateButton.of(innerContext).selectedValue,
-                          onValueTapped: (value) {
-                            setSelectedValue(value);
-                          },
-                        );
-                      })),
-                ],
-              ),
-            )
+                      } else {
+                        return const CircularProgressIndicator();
+                      }
+                    }))
           ],
         ),
       ),
@@ -396,6 +483,21 @@ class PlayerName extends StatelessWidget {
         style: const TextStyle(
             fontWeight: FontWeight.w400, fontSize: 14, color: NAMES_COLOR),
       ),
+    );
+  }
+}
+
+class CommonText extends StatelessWidget {
+  String widgetText;
+
+  CommonText({Key? key, required this.widgetText}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      widgetText,
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Colors.white),
     );
   }
 }
