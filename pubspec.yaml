@@ -89,6 +89,7 @@ flutter:
     - assets/game_response.json
     - assets/img_flag.png
     - assets/img_team_logo.png
+    - assets/img_team_placeholder.png
 
   #   - images/a_dot_ham.jpeg
 

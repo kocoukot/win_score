@@ -110,16 +110,7 @@ class _SportListScreenState extends State<SportListScreen> {
                     }
                     return Container(
                       child: InkWell(
-                        onTap: () =>
-                        {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => SportDetailedScreen(
-                          //             gameId: data[index].gameId,
-                          //             sportType: args,
-                          //           )),
-                          // )
+                        onTap: () => {
                           Navigator.pushNamed(
                               context, SportDetailedScreen.routeName,
                               arguments: {
@@ -141,7 +132,6 @@ class _SportListScreenState extends State<SportListScreen> {
             } else if (snapshot.hasError) {
               return Text("${snapshot.error}");
             }
-            // By default show a loading spinner.
             return const CircularProgressIndicator();
           },
         ),

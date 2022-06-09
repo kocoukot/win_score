@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_svg/parser.dart';
 import 'package:win_score/domain/sport_type.dart';
 import 'package:win_score/resources/values/app_colors.dart';
 
@@ -84,7 +83,6 @@ class TeamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late Widget flagWidget;
-    final SvgParser parser = SvgParser();
     if (teamModel.teamCC.isEmpty) {
       flagWidget = Icon(Icons.error);
     } else {
@@ -117,9 +115,9 @@ class TeamCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+              errorWidget: (context, url, error) => const Image(
+                  image: AssetImage('assets/img_team_placeholder.png')),
             ),
-            // "https://spoyer.ru/api/team_img/${sportType.sportApi}/${teamModel.teamId}.png"
           ),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -134,23 +132,7 @@ class TeamCard extends StatelessWidget {
             ),
           ),
           Align(alignment: Alignment.bottomCenter, child: flagWidget
-
-              // CachedNetworkImage(
-
-              //   imageUrl:
-              //   "https://spoyer.ru/api/icons/countries/${teamModel
-              //       .teamCC}.svg",
-              //   placeholder: (context, url) =>
-              //       Container(
-              //           padding: const EdgeInsets.symmetric(
-              //               vertical: 5, horizontal: 15),
-              //           height: 5,
-              //           width: 5,
-              //           child: const CircularProgressIndicator(
-              //               strokeWidth: 2)),
-              //   errorWidget: (context, url, error) => const Icon(Icons.error),
-              // ),
-              )
+          )
         ],
       ),
     );
