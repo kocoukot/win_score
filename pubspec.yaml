@@ -90,8 +90,6 @@ flutter:
     - assets/ic_basketball.png
     - assets/ic_football.png
     - assets/ic_hockey.png
-    - assets/games_list.json
-    - assets/game_response.json
     - assets/img_flag.png
     - assets/img_team_logo.png
     - assets/img_team_placeholder.png
